@@ -1,21 +1,23 @@
 package ch.bbw.pr.tresorbackend.service;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-/**
- * PasswordEncryptionService
- * @author Peter Rutschmann
- */
 @Service
 public class PasswordEncryptionService {
-   //todo ergänzen!
+
+   private final PasswordEncoder passwordEncoder;
+
+   private static final String PEPPER = "thisIsAVerySecretPepper:)"; // Pepper was verschlüsselt und zum password hinzugefügt wird
 
    public PasswordEncryptionService() {
-      //todo anpassen!
+      this.passwordEncoder = new BCryptPasswordEncoder();
    }
 
    public String hashPassword(String password) {
-      //todo anpassen!
-      return password;
+      String passwordWithPepper = password + PEPPER;
+      // encryption mit passwordEncoder
+      return passwordEncoder.encode(passwordWithPepper);
    }
 }
