@@ -20,4 +20,10 @@ public class PasswordEncryptionService {
       // encryption mit passwordEncoder
       return passwordEncoder.encode(passwordWithPepper);
    }
+
+   public boolean verifyPassword(String rawPassword, String storedHash) {
+      String rawWithPepper = rawPassword + PEPPER;
+      return passwordEncoder.matches(rawWithPepper, storedHash);
+   }
+
 }

@@ -178,4 +178,21 @@ public class UserController {
       return ResponseEntity.accepted().body(json);
    }
 
+   // funktion zum check, ob passwort übereinanderstimmt
+   @PostMapping("/login")
+   public ResponseEntity<String> loginUser(@RequestBody RegisterUser loginRequest) {
+      // get user email
+      User user = userService.findByEmail(loginRequest.getEmail());
+
+      // passwort verifizierung -> vergleich von input & echtem user.passwort
+      boolean isPasswordCorrect = passwordService.verifyPassword(loginRequest.getPassword(), user.getPassword());
+
+      if (!isPasswordCorrect) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+      }
+
+      return ResponseEntity.ok("Login successful");
+   }
+
+
 }
