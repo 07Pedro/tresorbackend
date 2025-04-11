@@ -2,48 +2,61 @@ package ch.bbw.pr.tresorbackend.util;
 
 import org.jasypt.util.text.AES256TextEncryptor;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Base64;
 
 /**
  * EncryptUtil
  * Used to encrypt content.
- * Not implemented yet.
  * @author Petr Cerny
  */
 public class EncryptUtil {
 
-   SecureRandom random = new SecureRandom();
-   AES256TextEncryptor encryptor = new AES256TextEncryptor();
-   byte[] salt = new byte[32];
-   String secretKey;
+   private final SecureRandom secureRandom = new SecureRandom();
+   private final String pepper;
 
-   public EncryptUtil(String secretKey) {
-      this.secretKey = secretKey;
+   public EncryptUtil(String pepper) {
+      this.pepper = pepper;
    }
 
-   public String encrypt(String data) {
-      // random wert wird generiert und zum secret hinzugefügt
-      random.nextBytes(salt);
-      String decodedSalt = Base64.getEncoder().encodeToString(salt);
-      secretKey = secretKey + decodedSalt;
-      encryptor.setPassword(secretKey);
+   public String encrypt(String plainText) {
+      // 16 zufällige Bytes als salt
+      byte[] saltBytes = new byte[16];
+      secureRandom.nextBytes(saltBytes);
 
-      data = encryptor.encrypt(data);
+      // Salt zu String verwandeln
+      String saltBase64 = Base64.getEncoder().encodeToString(saltBytes);
 
-      return data;
+      // neuer AES-Verschlüsseler
+      AES256TextEncryptor encryptor = new AES256TextEncryptor();
+      encryptor.setPassword(pepper + saltBase64);
+
+      // Text verschlüseln
+      String encryptedText = encryptor.encrypt(plainText);
+
+      return encryptedText + ":" + saltBase64;
    }
 
-   public String decrypt(String data) {
-      List<String> encryption = Arrays.asList(data.split(":"));
-      String secret = encryption.get(0);
-      String salt = encryption.get(1);
+   public String decrypt(String encryptedWithSalt) {
+      try {
+         // Den Text trennen nach dem :
+         String[] parts = encryptedWithSalt.split(":");
+         if (parts.length != 2) {
+            throw new IllegalArgumentException("[EncryptUtil] Invalid encrypted format: missing salt.");
+         }
 
-      byte[] decodedSalt = Base64.getDecoder().decode(salt);
-      encryptor.setPassword(secret + decodedSalt);
+         String encryptedText = parts[0];
+         String saltBase64 = parts[1];
 
-      data = encryptor.decrypt(secret);
-      return data;
+         AES256TextEncryptor decryptor = new AES256TextEncryptor();
+         decryptor.setPassword(pepper + saltBase64);
+
+         // Text entschlüsseln
+         return decryptor.decrypt(encryptedText);
+
+      } catch (Exception e) {
+         e.printStackTrace();
+         throw new IllegalArgumentException("Decryption failed. Possible wrong password or corrupted data.", e);
+      }
    }
 }
