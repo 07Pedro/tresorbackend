@@ -36,3 +36,18 @@ Dokumentation tresor-app Petr Cerny
 
 #### CORS-Konfiguration
 - CORS wird aktiviert, um den Zugriff vom Frontend (z. B. `localhost:3000`) auf das Backend (z. B. `localhost:8080`) zu ermöglichen.
+
+## Captcha
+
+#### Meine Probleme
+
+Nach dem erstellen des Secret&Site keys auf https://www.google.com/recaptcha/admin/site/722858598/setup kann man die Keys nutzen um ein Captcha ins Projekt einzuführen.
+
+Leider gibt es eine "failed server Response" welche verhindert, dass der user gespeichert wird. 
+Fürs Captch braucht es wiederum einen geöffneten Port vom Front zum Backend und die Keys ebenfalls für Front und Backend. 
+
+Wie es eigentlich funktioniert ist, der Captcha-state wird beim call mitgegeben und überprüft bevor der User erstellw wird. 
+
+To be continued...
+
+![img.png](captcha.png)

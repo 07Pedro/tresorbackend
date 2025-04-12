@@ -17,8 +17,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,8 +56,14 @@ public class UserController {
    @CrossOrigin(origins = "${CROSS_ORIGIN}")
    @PostMapping
    public ResponseEntity<String> createUser(@Valid @RequestBody RegisterUser registerUser, BindingResult bindingResult) {
-      //captcha
-      //todo ergänzen
+
+      if (!isCaptchaValid(registerUser.getRecaptchaToken())) {
+         JsonObject obj = new JsonObject();
+         obj.addProperty("error", "Captcha validation failed.");
+         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Gson().toJson(obj));
+      }
+
+
 
       System.out.println("UserController.createUser: captcha passed.");
 
@@ -194,5 +203,22 @@ public class UserController {
       return ResponseEntity.ok("Login successful");
    }
 
+   private boolean isCaptchaValid(String token) {
+      String secretKey = "6Ldm8hUrAAAAABLbDNOCctHhzRHAOdvhZXoT5wj7";
+      String url = "https://www.google.com/recaptcha/api/siteverify";
+
+      RestTemplate restTemplate = new RestTemplate();
+      MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+      params.add("secret", secretKey);
+      params.add("response", token);
+
+      try {
+         String response = restTemplate.postForObject(url, params, String.class);
+         JsonObject json = new Gson().fromJson(response, JsonObject.class);
+         return json.get("success").getAsBoolean();
+      } catch (Exception e) {
+         return false;
+      }
+   }
 
 }
