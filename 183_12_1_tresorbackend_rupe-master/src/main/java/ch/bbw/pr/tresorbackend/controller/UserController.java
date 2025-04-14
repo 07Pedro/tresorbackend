@@ -23,7 +23,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +56,7 @@ public class UserController {
 
    // build create User REST API
    @CrossOrigin(origins = "${CROSS_ORIGIN}")
-   @PostMapping
+   @PostMapping ("/user/register")
    public ResponseEntity<String> createUser(@Valid @RequestBody RegisterUser registerUser, BindingResult bindingResult) {
 
       if (!isCaptchaValid(registerUser.getRecaptchaToken())) {
