@@ -135,7 +135,7 @@ public class SecretController {
    private String encryptJsonValues(JsonObject json, String password) {
       EncryptUtil encryptUtil = new EncryptUtil(password); // Verschlüsselungslogik mit Passwort
       JsonObject encrypted = new JsonObject(); // neues leeres JSON
-      for (String key : json.keySet()) { // loop um jeden key zu verschlüsseln
+      for (String key : json.keySet()) { // loop um jedes value zu verschlüsseln
          encrypted.addProperty(
                  key,
                  encryptUtil.encrypt(json.get(key).getAsString())
@@ -148,7 +148,7 @@ public class SecretController {
       EncryptUtil encryptUtil = new EncryptUtil(password); // Entschlüsselungslogik mit Passwort
       JsonObject encrypted = JsonParser.parseString(content).getAsJsonObject();// String "content" wird zu JSON
       JsonObject decrypted = new JsonObject(); // neues leeres JSON
-      for (String key : encrypted.keySet()) { // loop um jeden key zu entschlüsseln
+      for (String key : encrypted.keySet()) { // loop um jedes value zu entschlüsseln
          try {
             decrypted.addProperty(
                     key,
