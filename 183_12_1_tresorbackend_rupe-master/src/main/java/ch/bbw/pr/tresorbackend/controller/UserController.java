@@ -46,7 +46,6 @@ public class UserController {
    public UserController(ConfigProperties configProperties, UserService userService,
                          PasswordEncryptionService passwordService) {
       this.configProperties = configProperties;
-      System.out.println("UserController.UserController: cross origin: " + configProperties.getOrigin());
       // Logging in the constructor
       logger.info("UserController initialized: " + configProperties.getOrigin());
       logger.debug("UserController.UserController: Cross Origin Config: {}", configProperties.getOrigin());
@@ -65,16 +64,11 @@ public class UserController {
          return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Gson().toJson(obj));
       }
 
-
-
-      System.out.println("UserController.createUser: captcha passed.");
-
       //input validation
       if (bindingResult.hasErrors()) {
          List<String> errors = bindingResult.getFieldErrors().stream()
                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                .collect(Collectors.toList());
-         System.out.println("UserController.createUser " + errors);
 
          JsonArray arr = new JsonArray();
          errors.forEach(arr::add);
@@ -82,10 +76,8 @@ public class UserController {
          obj.add("message", arr);
          String json = new Gson().toJson(obj);
 
-         System.out.println("UserController.createUser, validation fails: " + json);
          return ResponseEntity.badRequest().body(json);
       }
-      System.out.println("UserController.createUser: input validation passed");
 
       // Generiere individuelle Pepper für den User
       String pepper = passwordService.generatePepper();
@@ -101,11 +93,9 @@ public class UserController {
                pepper);
 
       User savedUser = userService.createUser(user);
-      System.out.println("UserController.createUser, user saved in db");
       JsonObject obj = new JsonObject();
       obj.addProperty("answer", "User Saved");
       String json = new Gson().toJson(obj);
-      System.out.println("UserController.createUser " + json);
       return ResponseEntity.accepted().body(json);
    }
 
@@ -151,13 +141,11 @@ public class UserController {
    @CrossOrigin(origins = "${CROSS_ORIGIN}")
    @PostMapping("/byemail")
    public ResponseEntity<String> getUserIdByEmail(@RequestBody EmailAdress email, BindingResult bindingResult) {
-      System.out.println("UserController.getUserIdByEmail: " + email);
       //input validation
       if (bindingResult.hasErrors()) {
          List<String> errors = bindingResult.getFieldErrors().stream()
                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                .collect(Collectors.toList());
-         System.out.println("UserController.createUser " + errors);
 
          JsonArray arr = new JsonArray();
          errors.forEach(arr::add);
@@ -165,27 +153,21 @@ public class UserController {
          obj.add("message", arr);
          String json = new Gson().toJson(obj);
 
-         System.out.println("UserController.createUser, validation fails: " + json);
          return ResponseEntity.badRequest().body(json);
       }
 
-      System.out.println("UserController.getUserIdByEmail: input validation passed");
 
       User user = userService.findByEmail(email.getEmail());
       if (user == null) {
-         System.out.println("UserController.getUserIdByEmail, no user found with email: " + email);
          JsonObject obj = new JsonObject();
          obj.addProperty("message", "No user found with this email");
          String json = new Gson().toJson(obj);
 
-         System.out.println("UserController.getUserIdByEmail, fails: " + json);
          return ResponseEntity.badRequest().body(json);
       }
-      System.out.println("UserController.getUserIdByEmail, user find by email");
       JsonObject obj = new JsonObject();
       obj.addProperty("answer", user.getId());
       String json = new Gson().toJson(obj);
-      System.out.println("UserController.getUserIdByEmail " + json);
       return ResponseEntity.accepted().body(json);
    }
 

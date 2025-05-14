@@ -45,7 +45,6 @@ public class SecretController {
          List<String> errors = bindingResult.getFieldErrors().stream()
                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                .collect(Collectors.toList());
-         System.out.println("SecretController.createSecret " + errors);
 
          JsonArray arr = new JsonArray();
          errors.forEach(arr::add);
@@ -71,11 +70,9 @@ public class SecretController {
    @CrossOrigin(origins = "${CROSS_ORIGIN}")
    @PostMapping("/byuserid")
    public ResponseEntity<List<Secret>> getSecretsByUserId(@RequestBody EncryptCredentials credentials) {
-      System.out.println("SecretController.getSecretsByUserId " + credentials);
 
       List<Secret> secrets = secretService.getSecretsByUserId(credentials.getUserId());
       if (secrets.isEmpty()) {
-         System.out.println("SecretController.getSecretsByUserId secret isEmpty");
          return ResponseEntity.notFound().build();
       }
       //Decrypt content
@@ -83,24 +80,20 @@ public class SecretController {
          try {
             secret.setContent(new EncryptUtil(credentials.getEncryptPassword()).decrypt(secret.getContent()));
          } catch (EncryptionOperationNotPossibleException e) {
-            System.out.println("SecretController.getSecretsByUserId " + e + " " + secret);
             secret.setContent("not encryptable. Wrong password?");
          }
       }
 
-      System.out.println("SecretController.getSecretsByUserId " + secrets);
       return ResponseEntity.ok(secrets);
    }
 
    @CrossOrigin(origins = "${CROSS_ORIGIN}")
    @PostMapping("/byemail") // endpoint
    public ResponseEntity<List<Secret>> getSecretsByEmail(@RequestBody EncryptCredentials credentials) {
-      System.out.println("SecretController.getSecretsByEmail called with credentials: " + credentials); // mitgegebene credentials
 
       User user = userService.findByEmail(credentials.getEmail()); // User durch email gefunden
       // return wenn kein user
       if (user == null) {
-         System.out.println("User not found for email: " + credentials.getEmail());
          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
       }
 
@@ -108,27 +101,22 @@ public class SecretController {
       List<Secret> secrets = secretService.getSecretsByUserId(user.getId());
       // handling wenn keine secrets vorhanden sind
       if (secrets.isEmpty()) {
-         System.out.println("No secrets found for user with email: " + credentials.getEmail());
          return ResponseEntity.status(HttpStatus.NOT_FOUND).body(List.of());
       }
 
       // foreach loop durch alle secrets
       for (Secret secret : secrets) {
          if (!secret.getUserId().equals(user.getId())) { // check ob user_id übereinstimmen
-            System.out.println("Access denied to secret with id: " + secret.getId());
             continue;  // weitermachen bis alle secrets gefiltirt wurden
          }
          try {
             String decryptedContent = decryptJsonValues(secret.getContent(), credentials.getEncryptPassword()); // das secret und encrypted passwort werden entschlüsselt
-            System.out.println("Decrypted secret content for secret ID: " + secret.getId() + " - " + decryptedContent);
             secret.setContent(decryptedContent); // das secret wird im unverschlüsseltem zustand gespeichert
          } catch (Exception e) { // error handling
             secret.setContent("{\"error\": \"Could not decrypt content.\"}");
-            System.out.println("Decryption failed for secret with id: " + secret.getId());
          }
       }
 
-      System.out.println("SecretController.getSecretsByEmail " + secrets);
       return ResponseEntity.ok(secrets);
    }
 
