@@ -87,18 +87,18 @@ public class UserController {
       }
       System.out.println("UserController.createUser: input validation passed");
 
-      //password validation
-      //todo ergänzen
-      System.out.println("UserController.createUser, password validation passed");
+      // Generiere individuelle Pepper für den User
+      String pepper = passwordService.generatePepper();
+      String hashedPassword = passwordService.hashPassword(registerUser.getPassword(), pepper);
 
       //transform registerUser to user
       User user = new User(
             null,
-            registerUser.getFirstName(),
-            registerUser.getLastName(),
-            registerUser.getEmail(),
-            passwordService.hashPassword(registerUser.getPassword())
-            );
+               registerUser.getFirstName(),
+               registerUser.getLastName(),
+               registerUser.getEmail(),
+               hashedPassword,
+               pepper);
 
       User savedUser = userService.createUser(user);
       System.out.println("UserController.createUser, user saved in db");
@@ -195,8 +195,15 @@ public class UserController {
       // get user email
       User user = userService.findByEmail(loginRequest.getEmail());
 
-      // passwort verifizierung -> vergleich von input & echtem user.passwort
-      boolean isPasswordCorrect = passwordService.verifyPassword(loginRequest.getPassword(), user.getPassword());
+      if (user == null || user.getPepper() == null) {
+         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
+      }
+
+      boolean isPasswordCorrect = passwordService.verifyPassword(
+              loginRequest.getPassword(),
+              user.getPassword(),
+              user.getPepper()
+      );
 
       if (!isPasswordCorrect) {
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
