@@ -6,7 +6,7 @@ Dokumentation tresor-app Petr Cerny
 ### Funktionsweise
 
 #### Passwort Hashing
-- Beim Hashing wird das Benutzerpasswort zusammen mit einem **Pepper** kombiniert, um die Sicherheit zu erhöhen.
+- Beim Hashing wird das Benutzerpasswort zusammen mit einem **Pepper** kombiniert, um die Sicherheit zu erhöhen. Das Pepper wird für jeden User neu generiert und mit den Userdaten in der DB gespeichert.
 - Das Passwort wird mit **BCrypt** gehasht, und in der Datenbank zu speichern.
 - Der **Pepper** wird als zusätzlicher Sicherheitsfaktor dem Passwort hinzugefügt, bevor es gehasht wird.
 
