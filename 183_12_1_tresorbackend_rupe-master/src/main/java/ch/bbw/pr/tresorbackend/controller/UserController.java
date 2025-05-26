@@ -79,9 +79,16 @@ public class UserController {
          return ResponseEntity.badRequest().body(json);
       }
 
-      // Generiere individuelle Pepper für den User
-      String pepper = passwordService.generatePepper();
-      String hashedPassword = passwordService.hashPassword(registerUser.getPassword(), pepper);
+       // Neue Passwortstärke-Prüfung
+       if (!isPasswordStrong(registerUser.getPassword())) {
+           JsonObject obj = new JsonObject();
+           obj.addProperty("error", "Password is too weak. It must be at least 8 characters long and contain uppercase, lowercase, number and special character.");
+           return ResponseEntity.badRequest().body(new Gson().toJson(obj));
+       }
+
+       //Generiere individuelle Pepper für den User
+       String pepper = passwordService.generatePepper();
+       String hashedPassword = passwordService.hashPassword(registerUser.getPassword(), pepper);
 
       //transform registerUser to user
       User user = new User(
@@ -99,7 +106,19 @@ public class UserController {
       return ResponseEntity.accepted().body(json);
    }
 
-   // build get user by id REST API
+    private boolean isPasswordStrong(String password) {
+        if (password == null) return false;
+        if (password.length() < 8) return false;
+        if (!password.matches(".*[A-Z].*")) return false;    // Großbuchstabe
+        if (!password.matches(".*[a-z].*")) return false;    // Kleinbuchstabe
+        if (!password.matches(".*\\d.*")) return false;      // Zahl
+        if (!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) return false; // Sonderzeichen
+        return true;
+    }
+
+
+
+    // build get user by id REST API
    // http://localhost:8080/api/users/1
    @CrossOrigin(origins = "${CROSS_ORIGIN}")
    @GetMapping("{id}")
