@@ -17,6 +17,13 @@ Dokumentation tresor-app Petr Cerny
 #### Sicherheit
 - Der **Pepper** schützt das Passwort zusätzlich zum Hashing.
 
+#### Passwortstärke
+- Bei der Registrierung prüft das Backend die Passwortstärke.
+- Das Passwort muss mindestens 8 Zeichen lang sein und mindestens einen grossbuchstaben, einen Kleinbuchstaben, eine Zahl und ein Sonderzeichen enthalten.
+- Schwache Passwörter werden mit einer Fehlermeldung abgelehnt
+- Eine ähnliche validierung erfolgt auch im Frontend per JavaScript.
+
+---
 
 ## Benutzer-Login-Implementierung
 
