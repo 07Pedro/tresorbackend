@@ -7,6 +7,7 @@ import ch.bbw.pr.tresorbackend.model.User;
 import ch.bbw.pr.tresorbackend.service.PasswordEncryptionService;
 import ch.bbw.pr.tresorbackend.service.UserService;
 
+import ch.bbw.pr.tresorbackend.util.JwtUtil;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -23,7 +24,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,14 +37,16 @@ import java.util.stream.Collectors;
 @RequestMapping("api/users")
 public class UserController {
 
+   private final JwtUtil jwtUtil;
    private UserService userService;
    private PasswordEncryptionService passwordService;
    private final ConfigProperties configProperties;
    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
    @Autowired
-   public UserController(ConfigProperties configProperties, UserService userService,
+   public UserController(JwtUtil jwtUtil, ConfigProperties configProperties, UserService userService,
                          PasswordEncryptionService passwordService) {
+      this.jwtUtil = jwtUtil;
       this.configProperties = configProperties;
       // Logging in the constructor
       logger.info("UserController initialized: " + configProperties.getOrigin());
@@ -192,8 +194,7 @@ public class UserController {
 
    // funktion zum check, ob passwort übereinanderstimmt
    @PostMapping("/login")
-   public ResponseEntity<String> loginUser(@RequestBody RegisterUser loginRequest) {
-      // get user email
+   public ResponseEntity<?> loginUser(@RequestBody RegisterUser loginRequest) {
       User user = userService.findByEmail(loginRequest.getEmail());
 
       if (user == null || user.getPepper() == null) {
@@ -210,7 +211,9 @@ public class UserController {
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
       }
 
-      return ResponseEntity.ok("Login successful");
+      String token = jwtUtil.generateToken(user.getEmail());
+
+      return ResponseEntity.ok(Map.of("token", token));
    }
 
    private boolean isCaptchaValid(String token) {
