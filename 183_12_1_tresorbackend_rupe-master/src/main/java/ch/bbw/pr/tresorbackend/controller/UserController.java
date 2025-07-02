@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
@@ -99,7 +100,8 @@ public class UserController {
                registerUser.getLastName(),
                registerUser.getEmail(),
                hashedPassword,
-               pepper);
+               pepper,
+              "ROLE_USER");
 
       User savedUser = userService.createUser(user);
       JsonObject obj = new JsonObject();
@@ -131,6 +133,7 @@ public class UserController {
 
    // Build Get All Users REST API
    // http://localhost:8080/api/users
+   @PreAuthorize("hasRole('ROLE_ADMIN')")
    @CrossOrigin(origins = "${CROSS_ORIGIN}")
    @GetMapping
    public ResponseEntity<List<User>> getAllUsers() {
@@ -211,7 +214,7 @@ public class UserController {
          return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
       }
 
-      String token = jwtUtil.generateToken(user.getEmail());
+      String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
 
       return ResponseEntity.ok(Map.of("token", token));
    }

@@ -35,4 +35,7 @@ public class User {
 
    @Column(nullable = false)
    private String pepper;
+
+   @Column(nullable = false)
+   private String role;
 }
