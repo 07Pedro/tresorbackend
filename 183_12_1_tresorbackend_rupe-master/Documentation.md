@@ -90,3 +90,33 @@ Bei der Decryption verläuft es genau gleich. die values werden mithilfe des pas
 Ein secret hat natürlich noch eine eigene ID in der db und eine user_id: die ID des Users welcher das secret erstellt hat. Durch diese kann man auch das richtige secret dem richtigem User zuordnen.
 
 Schlussendlich kommt das secret im Tabellenformat heraus (hat chatgpt gemacht. Dafür habe ich keine Nerven)
+
+# Authentifizierung & Autorisierung in der Secret Tresor App
+
+## JWT (JSON Web Token)
+
+Die Anwendung nutzt **JWT** zur Authentifizierung. Nach erfolgreichem Login wird ein signierter Token generiert und dem Client zurückgegeben. Der Token enthält Benutzerinformationen wie `username` und `roles` und wird bei nachfolgenden API-Anfragen im `Authorization`-Header mitgesendet.
+
+### Vorteile von JWT:
+- **Zustandslos**: Kein Server-Speichern von Sessions nötig.
+- **Sicher**: Signiert mit geheimem Schlüssel.
+- **Effizient**: Kompakter Token, direkt nutzbar zur Prüfung von Authentizität und Rollen.
+
+### Aufbau des Tokens:
+- **Header**: Enthält Algorithmus und Typ (`JWT`)
+- **Payload**: Benutzername, Rollen, Ablaufzeit
+- **Signature**: HMAC-SHA256-Signatur mit Geheimschlüssel
+
+##  Rollenbasierte Autorisierung
+
+Die App nutzt **rollenbasierte Autorisierung**, um Benutzerrechte zu steuern. Rollen werden im JWT-Token hinterlegt und vom Backend überprüft.
+
+### Verfügbare Rollen:
+- `ROLE_USER`: Kann eigene Secrets verwalten
+- `ROLE_ADMIN`: Hat erweiterte Rechte (z. B. Userverwaltung, Monitoring)
+
+### Zugriffsschutz:
+Spring Security schützt Routen mittels Annotationen wie:
+```java
+@PreAuthorize("hasRole('ROLE_USER')")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
